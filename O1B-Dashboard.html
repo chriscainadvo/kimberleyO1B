@@ -1,0 +1,209 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Kimberley O-1B — Case Dashboard</title>
+<style>
+  :root{--ink:#1D2733;--mut:#6b7280;--line:#e5e1d8;--bg:#F5F1E6;--card:#ffffff;
+        --green:#2b8a3e;--greenbg:#D3F9D8;--amber:#997A00;--amberbg:#FFF3BF;
+        --red:#c92a2a;--redbg:#FFE3E3;--blue:#59ABE8;--bluedk:#2f7cc0;}
+  *{margin:0;padding:0;box-sizing:border-box}
+  body{font-family:-apple-system,'Segoe UI',Roboto,sans-serif;background:var(--bg);color:var(--ink);padding:28px 16px 80px}
+  .wrap{max-width:880px;margin:auto}
+  header{background:var(--ink);color:#fff;border-radius:18px;padding:26px 28px;margin-bottom:18px}
+  header h1{font-size:24px;letter-spacing:.3px}
+  header .sub{color:#c9c2b4;font-size:13px;margin-top:6px;line-height:1.5}
+  .countdown{display:inline-block;margin-top:12px;background:var(--blue);color:#fff;font-weight:700;
+             border-radius:999px;padding:6px 16px;font-size:14px}
+  .scorebar{display:flex;gap:10px;margin:18px 0}
+  .crit{flex:1;background:var(--card);border:1px solid var(--line);border-radius:14px;padding:14px;text-align:center}
+  .crit .st{font-size:22px}
+  .crit .nm{font-weight:700;font-size:13px;margin-top:4px}
+  .crit .d{font-size:11px;color:var(--mut);margin-top:3px;line-height:1.4}
+  .crit.won{border-color:#b7e4c0;background:#f4fbf5}
+  .crit.target{border-color:var(--blue);background:#f0f7fd;box-shadow:0 0 0 2px #d7eafa}
+  h2{font-size:15px;letter-spacing:2px;text-transform:uppercase;color:var(--mut);margin:26px 0 10px}
+  .filters{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:12px}
+  .fbtn{border:1px solid var(--line);background:var(--card);border-radius:999px;padding:6px 14px;font-size:12px;
+        font-weight:700;cursor:pointer;color:var(--mut)}
+  .fbtn.on{background:var(--ink);color:#fff;border-color:var(--ink)}
+  .task{background:var(--card);border:1px solid var(--line);border-radius:14px;margin:8px 0;overflow:hidden}
+  .task>.row{display:flex;align-items:center;gap:12px;padding:13px 16px;cursor:pointer}
+  .task .num{font-weight:800;color:var(--mut);width:22px;font-size:13px}
+  .task .t{flex:1;font-weight:700;font-size:14px;line-height:1.4}
+  .task input[type=checkbox]{width:19px;height:19px;accent-color:var(--green);cursor:pointer;flex-shrink:0}
+  .task.done .t{text-decoration:line-through;color:var(--mut)}
+  .chip{font-size:10px;font-weight:800;letter-spacing:.5px;border-radius:999px;padding:3px 9px;white-space:nowrap}
+  .own-K{background:#F3E8FF;color:#7048e8}.own-G{background:#D3F9D8;color:var(--green)}
+  .own-C{background:#E7F5FF;color:var(--bluedk)}.own-P{background:#FFF3BF;color:var(--amber)}
+  .pri-hi{background:var(--redbg);color:var(--red)}
+  .pri-md{background:var(--amberbg);color:var(--amber)}
+  .task .det{display:none;border-top:1px dashed var(--line);padding:12px 16px 14px 50px;font-size:13px;
+             color:#3f4750;line-height:1.65;background:#fbfaf6}
+  .task.open .det{display:block}
+  .grid{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+  @media(max-width:640px){.grid{grid-template-columns:1fr}.scorebar{flex-direction:column}}
+  .panel{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:16px}
+  .panel h3{font-size:13px;margin-bottom:8px}
+  .panel ul{list-style:none}
+  .panel li{font-size:12.5px;padding:5px 0;border-bottom:1px dashed var(--line);line-height:1.5}
+  .panel li:last-child{border-bottom:0}
+  .ok::before{content:"✅ ";}.gap::before{content:"❌ ";}.wip::before{content:"🔄 ";}
+  .q{border-left:3px solid var(--blue);padding:8px 12px;background:#f0f7fd;border-radius:0 8px 8px 0;
+     font-size:12.5px;font-style:italic;margin:8px 0;line-height:1.6}
+  .q b{font-style:normal}
+  .foot{margin-top:26px;text-align:center;font-size:11px;color:var(--mut);line-height:1.7}
+  .prog{height:10px;background:var(--line);border-radius:999px;margin:10px 0 4px;overflow:hidden}
+  .prog>div{height:100%;background:linear-gradient(90deg,var(--green),#69c779);border-radius:999px;transition:width .3s}
+  .prog-lbl{font-size:11px;color:var(--mut);font-weight:700}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+<header>
+  <h1>🛂 Kimberley Hannah — O-1B RFE Dashboard</h1>
+  <div class="sub">Beneficiary: Kimberley Ann Hannah, Choreographer · Petitioner: Matthew Gilbert-Aranoff (agent) ·
+  Counsel: Path Law Group · USCIS Vermont Service Center · Receipt IOE8874804352</div>
+  <div class="countdown" id="cd">Response due Sep 8, 2026</div>
+  <div class="prog"><div id="pbar" style="width:0%"></div></div>
+  <div class="prog-lbl" id="plbl" style="color:#c9c2b4"></div>
+</header>
+
+<div class="scorebar">
+  <div class="crit won"><div class="st">✅</div><div class="nm">Significant Recognition</div><div class="d">GRANTED — USCIS: "appears to have met this requirement"</div></div>
+  <div class="crit won"><div class="st">✅</div><div class="nm">High Remuneration</div><div class="d">GRANTED — USCIS: "appears to have met this criterion"</div></div>
+  <div class="crit target"><div class="st">🎯</div><div class="nm">Lead/Critical Role — Distinguished Orgs</div><div class="d">THE ONE TO WIN · Past = Diverse · Future = PATHETIC · Backup = Productions route</div></div>
+</div>
+<div style="text-align:center;font-size:12px;color:var(--mut);font-weight:600">O-1B needs 3 of 6 criteria → two are already granted → the entire response is about winning one more</div>
+
+<h2>Priority tasks <span id="count" style="letter-spacing:0"></span></h2>
+<div class="filters" id="filters">
+  <button class="fbtn on" data-f="all">All</button>
+  <button class="fbtn" data-f="K">Kimberley</button>
+  <button class="fbtn" data-f="G">George</button>
+  <button class="fbtn" data-f="C">Chris</button>
+  <button class="fbtn" data-f="P">Path Law</button>
+</div>
+<div id="tasks"></div>
+
+<h2>Evidence inventory</h2>
+<div class="grid">
+  <div class="panel">
+    <h3>📂 In hand (in this folder)</h3>
+    <ul>
+      <li class="ok">Full 10-page USCIS RFE</li>
+      <li class="ok">Filed petition: I-129, G-28, Petitioner's Letter, Exhibit List, Agent Designation</li>
+      <li class="ok">7 press-article PDFs, full content, no links (Vogue, Vogue España, Jing Daily ×2, NSS ×2, Protein, Stratégies)</li>
+      <li class="ok">Scott Marshall + Matt Firth letter skeletons, ready to fill</li>
+      <li class="ok">Strategy analysis + gap analysis vs the filed petition</li>
+      <li class="ok">All lawyer emails + full K O1 thread</li>
+      <li class="ok">Certified-translation quotes (RushTranslate ~$550)</li>
+    </ul>
+  </div>
+  <div class="panel">
+    <h3>🕳️ Gaps to close</h3>
+    <ul>
+      <li class="gap">Dubai Opera published materials (programs/press for Bring On Tomorrow + D15verse)</li>
+      <li class="gap">Diverse reputation pack (award — VERIFY name, press, scale)</li>
+      <li class="gap">Encore Stars award + press (Kimberley is CO-FOUNDER = role already locked)</li>
+      <li class="gap">PATHETIC: focused press, awards, brand contracts/invoices, market standing</li>
+      <li class="gap">Vogue "starter packs" + Business Insider full PDFs</li>
+      <li class="gap">Certified FR/ES/IT translations (quotes ready, needs order)</li>
+      <li class="gap">Expert opinion letters (candidates TBD per Ashok's criteria)</li>
+    </ul>
+  </div>
+</div>
+
+<h2>What the lawyers confirmed (Ashok, 9 Jul)</h2>
+<div class="panel">
+  <div class="q"><b>Past half via Diverse:</b> upgraded Marshall/Firth letters + reputation package are <b>"exactly the right approach."</b></div>
+  <div class="q"><b>Backup productions route:</b> "Yes, we can certainly include these documents."</div>
+  <div class="q"><b>Expert letters:</b> USCIS weights objective evidence higher — letters supplement. Qualifying experts: published work, senior roles at recognised institutions, media recognition, judging/advisory positions.</div>
+  <div class="q"><b>Cover brief:</b> yes — maps each exhibit to its criterion and opens by noting the two criteria already satisfied and accepted.</div>
+  <div class="q"><b>Letters:</b> Path Law drafts (via LOR forms) or reviews ours — <b>George to choose.</b> Drafts are ready, so draft-then-review is faster.</div>
+</div>
+
+<h2>Hard rules for the filing</h2>
+<div class="panel">
+  <ul>
+    <li>ONE submission with ALL evidence — no partial responses (USCIS treats partial as final)</li>
+    <li>Coversheet + the RFE letter physically on top — omission can mean denial</li>
+    <li>Every exhibit labelled to its criterion · print everything — pages with links are disregarded</li>
+    <li>Foreign docs: certified full English translation + copy of the original</li>
+    <li>Deadline Sep 8, 2026 — cannot be extended · target filing: mid-August</li>
+  </ul>
+</div>
+
+<div class="foot">
+  Full detail lives in this folder: 00_START_HERE.md · 02_Strategy_and_Analysis/ (incl. GAP-ANALYSIS) ·
+  04_Lawyer_Communications/<br>Task checkboxes save locally in your browser. Assembled by Chris + Claude · updated 9 Jul 2026
+</div>
+</div>
+
+<script>
+const TASKS=[
+ {n:1,t:"Decide letter drafting: we draft + Path Law reviews (faster) vs LOR forms + they draft",o:"G",p:"hi",
+  d:"Ashok offered both. Our Scott Marshall + Matt Firth skeletons are already written (02_Strategy_and_Analysis/o1b-letter-skeletons.md) — recommending we draft, they review. One-word decision unblocks the biggest lever."},
+ {n:2,t:"Scott Marshall + Matt Firth upgraded letters — fill, sign on Diverse letterhead",o:"K",p:"hi",
+  d:"Must state: her position in Diverse's hierarchy (org chart), what she was entrusted with (flagship productions + elite comp teams), and how her comp results fed Diverse's award. Skeletons ready — fill [brackets], print on letterhead, sign + date. Then to Path Law for review."},
+ {n:3,t:"Diverse reputation pack — the award, press, scale, competition record",o:"K",p:"hi",
+  d:"Prove Diverse itself is distinguished: the award announcement (VERIFY exact name — 'Global School of the Year 2024' vs the filed 'Global Dance Open'), any press on Diverse, student/faculty numbers, production history, international competition record."},
+ {n:4,t:"Dubai Opera published materials — programs/listings/press naming Kimberley",o:"K",p:"hi",
+  d:"NEW opportunity from the gap analysis: 'Bring On Tomorrow' + 'D15verse' ran AT Dubai Opera — a world-renowned venue. Published programs/listings/press naming her as choreographer = exactly what the productions criterion demands (published materials only). Chris can draft the outreach to Dubai Opera if needed."},
+ {n:5,t:"PATHETIC evidence pack — founders' letters + contracts/invoices + awards + focused press",o:"G",p:"hi",
+  d:"Per Ashok's list: (1) press substantively ABOUT PATHETIC, (2) industry awards/nominations, (3) market standing — retail presence, sales figures, celebrity endorsements, partnerships/stockists with big retailers (contracts + invoices count), (4) third-party rankings/industry reports. George chasing Joe Smith + Catty Berragan."},
+ {n:6,t:"Encore Stars award + press (she's co-founder & Artistic Director)",o:"K",p:"md",
+  d:"Her role is already locked (co-founder = top of hierarchy by definition). Just need to prove the org's distinguished reputation: the award it won, press, community recognition."},
+ {n:7,t:"Order certified translations — Stratégies (FR), Vogue España (ES), NSS Sports (IT)",o:"C",p:"md",
+  d:"RushTranslate recommended: $24.95/page, 24h turnaround, USCIS-guaranteed certification. Billing pages = 250 words (est. total ~$550). Upload the 3 original PDFs from 03_Press_Articles for an exact quote. Needs a card (suggest confirming with George: Mercury business)."},
+ {n:8,t:"Published-materials sweep — programs, playbills, published comp results, venue letter",o:"K",p:"md",
+  d:"Backup route (Ashok: include). Programs/playbills naming her (Matilda, Hairspray, Showcase 2025), competition results as published by the comps, and a venue/box-office letter confirming the ~1,200-audience professional-theatre shows. Chris drafts the venue letter for signature. Social posts do NOT count here."},
+ {n:9,t:"Expert opinion letters — identify candidates, Chris drafts",o:"G",p:"md",
+  d:"Qualifying experts per Ashok: clear public standing — published work, senior roles at recognised institutions, media recognition, judging/advisory positions. Ideas: competition adjudicators who scored her work (dance side); a fashion-marketing authority via Joe/Catty (PATHETIC side). Supplementary weight, not the spine."},
+ {n:10,t:"Vogue 'starter packs' + Business Insider full PDFs to Johanna",o:"K",p:"md",
+  d:"The two paywalled articles Johanna asked for on 30 Jun. Kimberley has the links/access; Chris converts to full-content PDFs if she sends the links."},
+ {n:11,t:"Working PATHETIC Instagram link to Johanna",o:"C",p:"md",
+  d:"Johanna's link wouldn't load. Verify the live handle (@pathetic vs @patheticfashion) and send the working URL."},
+ {n:12,t:"Assemble + file the response — criteria-mapped brief, coversheet on top",o:"P",p:"hi",
+  d:"Path Law assembles: cover brief mapping every exhibit to its criterion, opening note that 2 criteria are already satisfied, coversheet + RFE letter physically on top, certified translations attached, everything printed. Target: file mid-August, deadline Sep 8 (no extensions)."},
+];
+const OWN={K:"Kimberley",G:"George",C:"Chris",P:"Path Law"};
+const KEY="o1bDash";
+let done=JSON.parse(localStorage.getItem(KEY)||"[]");
+let filter="all";
+function render(){
+  const el=document.getElementById("tasks");
+  const list=TASKS.filter(t=>filter==="all"||t.o===filter);
+  el.innerHTML=list.map(t=>`
+    <div class="task ${done.includes(t.n)?"done":""}" id="task${t.n}">
+      <div class="row" onclick="toggleOpen(${t.n},event)">
+        <input type="checkbox" ${done.includes(t.n)?"checked":""} onclick="event.stopPropagation();toggleDone(${t.n})">
+        <span class="num">${t.n}</span>
+        <span class="t">${t.t}</span>
+        <span class="chip own-${t.o}">${OWN[t.o].toUpperCase()}</span>
+        <span class="chip pri-${t.p}">${t.p==="hi"?"HIGH":"MED"}</span>
+      </div>
+      <div class="det">${t.d}</div>
+    </div>`).join("");
+  const hi=TASKS.filter(t=>!done.includes(t.n)&&t.p==="hi").length;
+  document.getElementById("count").textContent=` · ${TASKS.length-done.length} open (${hi} high)`;
+  const pct=Math.round(100*done.length/TASKS.length);
+  document.getElementById("pbar").style.width=pct+"%";
+  document.getElementById("plbl").textContent=`${done.length}/${TASKS.length} tasks complete (${pct}%)`;
+}
+function toggleOpen(n,e){document.getElementById("task"+n).classList.toggle("open");}
+function toggleDone(n){done=done.includes(n)?done.filter(x=>x!==n):[...done,n];
+  localStorage.setItem(KEY,JSON.stringify(done));render();}
+document.querySelectorAll(".fbtn").forEach(b=>b.onclick=()=>{
+  document.querySelectorAll(".fbtn").forEach(x=>x.classList.remove("on"));
+  b.classList.add("on");filter=b.dataset.f;render();});
+// deadline countdown
+const dl=new Date("2026-09-08T23:59:00-04:00"), now=new Date();
+const days=Math.max(0,Math.ceil((dl-now)/864e5));
+document.getElementById("cd").textContent=`⏳ ${days} days to the Sep 8 deadline · target filing: mid-August`;
+render();
+</script>
+</body>
+</html>
